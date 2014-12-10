@@ -102,6 +102,27 @@ public class App {
 				put(request.params(":key"), jedis.get(request.params(":key")));
 			}});
 		}, new JsonTransformer());
+		
+		post("/url/new/", (request, response) -> {
+			logger.info(String.format("add a new URL to REDIS: %s", request.params(":url")));
+			try {
+				new URL(request.params(":url"));
+				String shortened = md5(request.params(":url")).substring(0, KEY_LENGTH);
+				
+				jedis.set(shortened, request.params(":url"));
+				jedis.expire(shortened, SECONDS_TO_LIVE);
+				
+				response.body(String.format("Your URL, Sir, is <a href=/url/go/%s>/url/go/%s</a>", shortened, shortened));
+				response.type(MediaType.TEXT_HTML);
+				response.status(Status.CREATED.getStatusCode());
+				
+			} catch (MalformedURLException malformedURLException) {
+				response.body(String.format("Your URL, Sir, is damn wrong! %s", request.params(":url")));
+				response.type(MediaType.TEXT_PLAIN);
+				response.status(Status.NOT_ACCEPTABLE.getStatusCode());
+			}
+			return response.body();
+		});
 
 			get("/test/info/", (request, response) -> {
 				System.out.println(request.body());
