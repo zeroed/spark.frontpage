@@ -17,6 +17,11 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 public class App {
+	/**
+	 * TODO: before closing... release and destroy!
+	 * pool.returnResource(jedis);
+	 * pool.destroy();
+	 */
 	public static String md5(String input) {
 		String md5 = null;
 		if(null == input) return null;
