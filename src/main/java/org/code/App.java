@@ -5,18 +5,32 @@ import static spark.Spark.get;
 import static spark.Spark.halt;
 import static spark.Spark.post;
 import static spark.SparkBase.port;
+import static spark.SparkBase.staticFileLocation;
+import static spark.SparkBase.stop;
 
+import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-public class App {
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+
+
+public class App { //implements SparkApplication {
 	
 	static final Logger logger = LogManager.getLogger(App.class.getName());
 	static final int SECONDS_TO_LIVE = 600;
@@ -27,6 +41,7 @@ public class App {
 	 * pool.returnResource(jedis);
 	 * pool.destroy();
 	 */
+
 	public static String md5(String input) {
 		String md5 = null;
 		if(null == input) return null;
@@ -40,68 +55,80 @@ public class App {
 		return md5;
 	}
 
-	@SuppressWarnings("serial")
-	public static void main(String[] args) {
+//	@Override
+//	public void init() {
+		
 
+	public static void main(String[] args) {
 		JedisPool pool = new JedisPool(new JedisPoolConfig(), "localhost");
 		Jedis jedis = pool.getResource();
 
-		jedis.set("foo", "bar");
-		String foobar = jedis.get("foo");
-		assert foobar.equals("bar");
-
-		pool.returnResource(jedis);
-		pool.destroy();
-
 		port(8080);
-
-		before("/*", (request, response) -> {
-			response.header("Foo", "Set by second before filter");
+		staticFileLocation("public");
+		
+		stop();
+		
+		before((request, response) -> {
+			logger.info("adding header");
+			response.header("Powered-By", "Redis");
 		});
 
 		get("/", (request, response) -> {
+			logger.info("root requested");
 			response.body("Hello Redis");
-			response.header("Powerd-By", "Redis");
-			// response.raw();
-			// response.redirect("/example");
 			response.status((Status.OK.getStatusCode()));
 			response.type(MediaType.TEXT_PLAIN);
-			return response;
+			return response.body();
 
 		});
 
 		get("/protected", (request, response) -> {
+			logger.info("LOL, protected?");
 			halt(403, "I don't think so!!!");
 			return null;
 		});
 
 		// e.g. /redis?key=Foo&value=Bar
-		post("/redis/", (request, response) -> {
-
+		get("/redis", (request, response) -> {
+			logger.info(String.format("request of insert into REDIS: %s", request.splat().toString()));
 			String key = request.queryParams("key");
 			String value = request.queryParams("value");
-
-			jedis.set(key, value);
-			jedis.expire(key, 10);
-			String there = jedis.get(key);
-
-			response.body(String.format("created %s: %s", key, there));
-			response.type(MediaType.TEXT_PLAIN);
-			response.status(Status.CREATED.getStatusCode());
-			return response;
+			
+			if(key != null && value != null) {
+				jedis.set(key, value);
+				jedis.expire(key, SECONDS_TO_LIVE);
+	
+				response.body(String.format("created %s: %s", key, jedis.get(key)));
+				response.type(MediaType.TEXT_PLAIN);
+				response.status(Status.CREATED.getStatusCode());
+			} else {
+				response.body(String.format("Your URL, Sir, is damn wrong! This %s is what you gave me?", request.params(":url")));
+				response.type(MediaType.TEXT_PLAIN);
+				response.status(Status.NOT_ACCEPTABLE.getStatusCode());
+			}
+			return response.body();
 		});
 
 		post("/redis/", (request, response) -> {
+			logger.info(String.format("posting a request to REDIS: %s", request));
 			// TODO: meh? implement me!
 			return null;
 		});
 
 		get("/redis/:key", (request, response) -> {
-			//TODO: un-uglify me!
-			return (new HashMap<String,String>(){{
-				put(request.params(":key"), jedis.get(request.params(":key")));
-			}});
-		}, new JsonTransformer());
+			logger.info(String.format("retrieve a key:value from REDIS: %s", request.params(":key")));
+			
+			if(jedis.get(request.params(":key")) != null) {
+				JsonObject jsonObject = new JsonObject();
+				jsonObject.addProperty(request.params(":key"), jedis.get(request.params(":key")));
+				response.body(jsonObject.toString());
+				response.status((Status.OK.getStatusCode()));
+			} else {
+				response.status((Status.NOT_FOUND.getStatusCode()));
+			}
+			return response.body();
+			
+		});
 		
 		post("/url/new/", (request, response) -> {
 			logger.info(String.format("add a new URL to REDIS: %s", request.params(":url")));
