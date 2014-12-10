@@ -17,6 +17,11 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 public class App {
+	
+	static final Logger logger = LogManager.getLogger(App.class.getName());
+	static final int SECONDS_TO_LIVE = 600;
+	static final int KEY_LENGTH = 8;
+	
 	/**
 	 * TODO: before closing... release and destroy!
 	 * pool.returnResource(jedis);
