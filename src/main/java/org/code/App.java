@@ -109,5 +109,15 @@ public class App {
 				System.out.println(request.userAgent());
 				return String.format("%s", LocalDateTime.now());
 			});
+		get("/url/go/:key", (request, response) -> {
+			logger.info(String.format("ready to redirect! %s", request));
+			if(jedis.get(request.params(":key")) != null) {
+				response.redirect(jedis.get(request.params(":key")));
+				response.status((Status.MOVED_PERMANENTLY.getStatusCode()));
+			} else {
+				response.status((Status.NOT_FOUND.getStatusCode()));
+			}
+			return response.body();
+		});
 	}
 }
