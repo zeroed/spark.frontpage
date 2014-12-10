@@ -124,34 +124,6 @@ public class App {
 			return response.body();
 		});
 
-			get("/test/info/", (request, response) -> {
-				System.out.println(request.body());
-				System.out.println(request.cookies().toString());
-				System.out.println(String.valueOf(request.contentLength()));
-				System.out.println(request.contentType());
-				System.out.println(request.headers().toString());
-				System.out.println(request.headers("BAR"));
-				System.out.println(request.attributes().toString());
-				System.out.println(request.attribute("foo"));
-				System.out.println(request.host());
-				System.out.println(request.ip());
-				System.out.println(request.pathInfo());
-				System.out.println(request.params("foo"));
-				System.out.println(request.params());
-				System.out.println(request.port());
-				System.out.println(request.queryMap());
-				System.out.println(request.queryMap("foo"));
-				System.out.println(request.queryParams("FOO"));
-				System.out.println(request.queryParams());
-				System.out.println(request.raw());
-				System.out.println(request.requestMethod());
-				System.out.println(request.scheme());
-				System.out.println(request.session());
-				System.out.println(request.splat());
-				System.out.println(request.url());
-				System.out.println(request.userAgent());
-				return String.format("%s", LocalDateTime.now());
-			});
 		get("/url/go/:key", (request, response) -> {
 			logger.info(String.format("ready to redirect! %s", request));
 			if(jedis.get(request.params(":key")) != null) {
@@ -160,6 +132,39 @@ public class App {
 			} else {
 				response.status((Status.NOT_FOUND.getStatusCode()));
 			}
+			return response.body();
+		});
+
+		get("/test/", (request, response) -> {
+			System.out.println(request.body());
+			System.out.println(request.cookies().toString());
+			System.out.println(String.valueOf(request.contentLength()));
+			System.out.println(request.contentType());
+			System.out.println(request.headers().toString());
+			System.out.println(request.headers("BAR"));
+			System.out.println(request.attributes().toString());
+			System.out.println(request.attribute("foo"));
+			System.out.println(request.host());
+			System.out.println(request.ip());
+			System.out.println(request.pathInfo());
+			System.out.println(request.params("foo"));
+			System.out.println(request.params());
+			System.out.println(request.port());
+			System.out.println(request.queryMap());
+			System.out.println(request.queryMap("foo"));
+			System.out.println(request.queryParams("FOO"));
+			System.out.println(request.queryParams());
+			System.out.println(request.raw());
+			System.out.println(request.requestMethod());
+			System.out.println(request.scheme());
+			System.out.println(request.session());
+			System.out.println(request.splat());
+			System.out.println(request.url());
+			System.out.println(request.userAgent());
+
+			response.body(String.format("%s (see the log... ^_^", LocalDateTime.now()));
+			response.type(MediaType.TEXT_PLAIN);
+			response.status(Status.OK.getStatusCode());
 			return response.body();
 		});
 	}
