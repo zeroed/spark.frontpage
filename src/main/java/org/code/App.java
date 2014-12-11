@@ -307,5 +307,18 @@ public class App { //implements SparkApplication {
 
 			return response.body();
 		});
+		
+		get("/blog/post/:key", (request, response) -> {
+
+			if(jedis.hget(request.params(":key"), "content") != null) {
+				response.body(jedis.hget(request.params(":key"), "content"));
+				response.status((Status.OK.getStatusCode()));
+			} else {
+				response.status((Status.NOT_FOUND.getStatusCode()));
+			}
+			return response.body();
+
+		});
+		
 	}
 }
