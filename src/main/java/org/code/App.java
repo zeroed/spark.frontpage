@@ -160,7 +160,7 @@ public class App { //implements SparkApplication {
 		});
 
 		get("/url/go/:key", (request, response) -> {
-			logger.info(String.format("ready to redirect! %s", request));
+			logger.info(String.format("ready to redirect! %s", request.body()));
 			if(jedis.get(request.params(":key")) != null) {
 				response.redirect(jedis.get(request.params(":key")));
 				response.status((Status.MOVED_PERMANENTLY.getStatusCode()));
