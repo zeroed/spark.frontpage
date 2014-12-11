@@ -72,9 +72,9 @@ public class App { //implements SparkApplication {
 
 		port(8080);
 		staticFileLocation("public");
-		
-		stop();
-		
+
+		//stop();
+
 		before((request, response) -> {
 			logger.info("adding header");
 			response.header("Powered-By", "Redis");
