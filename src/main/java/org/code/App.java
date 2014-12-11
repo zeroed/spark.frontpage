@@ -124,13 +124,27 @@ public class App { //implements SparkApplication {
 			
 		});
 		
-		post("/url/new/", (request, response) -> {
+		get("/url/", (request, response) -> {
 			logger.info(String.format("add a new URL to REDIS: %s", request.params(":url")));
+			response.body("<html>"
+					+ "<head><title>Redis - Add url</title></head>"
+					+ "<body>"
+					+ "<form id=\"add_url\" action=\"/url/new/\" method=\"POST\">"
+					+ "<p><label>Url</label><input type=\"text\" name=\"url\"/></p>"
+					+ "<p><input type=submit value=\"short me!\"></input></p>"
+					+ "</form></body></html>");
+			response.type(MediaType.TEXT_HTML);
+			response.status((Status.OK.getStatusCode()));
+			return response.body();
+		});		
+		
+		post("/url/new/", (request, response) -> {
+			logger.info(String.format("add a new URL to REDIS: %s", request.queryParams("url")));
 			try {
-				new URL(request.params(":url"));
-				String shortened = md5(request.params(":url")).substring(0, KEY_LENGTH);
+				new URL(request.queryParams("url"));
+				String shortened = md5(request.queryParams("url")).substring(0, KEY_LENGTH);
 				
-				jedis.set(shortened, request.params(":url"));
+				jedis.set(shortened, request.queryParams("url"));
 				jedis.expire(shortened, SECONDS_TO_LIVE);
 				
 				response.body(String.format("Your URL, Sir, is <a href=/url/go/%s>/url/go/%s</a>", shortened, shortened));
@@ -138,7 +152,7 @@ public class App { //implements SparkApplication {
 				response.status(Status.CREATED.getStatusCode());
 				
 			} catch (MalformedURLException malformedURLException) {
-				response.body(String.format("Your URL, Sir, is damn wrong! %s", request.params(":url")));
+				response.body(String.format("Your URL, Sir, is damn wrong! %s", request.queryParams("url")));
 				response.type(MediaType.TEXT_PLAIN);
 				response.status(Status.NOT_ACCEPTABLE.getStatusCode());
 			}
