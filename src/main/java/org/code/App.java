@@ -192,5 +192,41 @@ public class App { //implements SparkApplication {
 
 			return response.body();
 		});
+
+		// e.g. /blog/user/new?username=adam&password=eden
+		get("/blog/user/new", (request, response) -> {
+			logger.info(String.format("request of insert user into REDIS_BLOG: %s", request.body().toString()));
+
+			String username = request.queryParams("username");
+			String password = request.queryParams("password");
+
+			if(jedis.sadd("users", username) > 0) {
+				if(username != null && password != null) {
+
+					logger.info(String.format("Incr: %s", String.valueOf(jedis.incr("keys"))));
+					String key = "blog:users:" + username;
+					logger.info(String.format("%s:%s:%s", key, username, password));
+
+					jedis.hset(key, "username", username);
+					jedis.hset(key, "password", password);
+					
+					request.session().attribute("login", username);
+
+					response.body(String.format("created and logged [%s]: %s", key, jedis.hget(key, "username")));
+					response.type(MediaType.TEXT_PLAIN);
+					response.status(Status.CREATED.getStatusCode());
+
+				} else {
+					response.body(String.format("Your URL, Sir, is damn wrong! This %s is what you gave me?", request.params(":url")));
+					response.type(MediaType.TEXT_PLAIN);
+					response.status(Status.NOT_ACCEPTABLE.getStatusCode());
+				}
+			} else {
+				response.body(String.format("Your username, Sir, is existing! This %s is what you gave me?", username));
+				response.type(MediaType.TEXT_PLAIN);
+				response.status(Status.NOT_ACCEPTABLE.getStatusCode());
+			}
+			return response.body();
+		});
 	}
 }
