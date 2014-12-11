@@ -8,6 +8,7 @@ import static spark.SparkBase.port;
 import static spark.SparkBase.staticFileLocation;
 import static spark.SparkBase.stop;
 
+
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,12 +22,15 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -100,11 +104,11 @@ public class App { //implements SparkApplication {
 			logger.info(String.format("request of insert into REDIS: %s", request.splat().toString()));
 			String key = request.queryParams("key");
 			String value = request.queryParams("value");
-			
+
 			if(key != null && value != null) {
 				jedis.set(key, value);
 				jedis.expire(key, SECONDS_TO_LIVE);
-	
+
 				response.body(String.format("created %s: %s", key, jedis.get(key)));
 				response.type(MediaType.TEXT_PLAIN);
 				response.status(Status.CREATED.getStatusCode());
@@ -118,7 +122,7 @@ public class App { //implements SparkApplication {
 
 		get("/redis/:key", (request, response) -> {
 			logger.info(String.format("retrieve a key:value from REDIS: %s", request.params(":key")));
-			
+
 			if(jedis.get(request.params(":key")) != null) {
 				JsonObject jsonObject = new JsonObject();
 				jsonObject.addProperty(request.params(":key"), jedis.get(request.params(":key")));
@@ -128,9 +132,9 @@ public class App { //implements SparkApplication {
 				response.status((Status.NOT_FOUND.getStatusCode()));
 			}
 			return response.body();
-			
+
 		});
-		
+
 		get("/url/", (request, response) -> {
 			logger.info(String.format("add a new URL to REDIS: %s", request.params(":url")));
 			response.body("<html>"
@@ -144,20 +148,20 @@ public class App { //implements SparkApplication {
 			response.status((Status.OK.getStatusCode()));
 			return response.body();
 		});		
-		
+
 		post("/url/new/", (request, response) -> {
 			logger.info(String.format("add a new URL to REDIS: %s", request.queryParams("url")));
 			try {
 				new URL(request.queryParams("url"));
 				String shortened = md5(request.queryParams("url")).substring(0, KEY_LENGTH);
-				
+
 				jedis.set(shortened, request.queryParams("url"));
 				jedis.expire(shortened, SECONDS_TO_LIVE);
-				
+
 				response.body(String.format("Your URL, Sir, is <a href=/url/go/%s>/url/go/%s</a>", shortened, shortened));
 				response.type(MediaType.TEXT_HTML);
 				response.status(Status.CREATED.getStatusCode());
-				
+
 			} catch (MalformedURLException malformedURLException) {
 				response.body(String.format("Your URL, Sir, is damn wrong! %s", request.queryParams("url")));
 				response.type(MediaType.TEXT_PLAIN);
