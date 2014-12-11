@@ -263,5 +263,21 @@ public class App { //implements SparkApplication {
 
 			return response.body();
 		});
+		
+		get("/blog/post/new", (request, response) -> {
+			logger.info(String.format("add a new URL to REDIS: %s", request.params(":url")));
+			logger.info(request.session().attribute("login"));
+			response.body("<html>"
+					+ "<head><title>Redis - Add url</title></head>"
+					+ "<body>"
+					+ "<form id=\"add_post\" action=\"/blog/post/new\" method=\"POST\">"
+					+ "<p><label>subject</label><input type=\"text\" name=\"subject\"/></p>"
+					+ "<p><label>post</label><textarea name=\"post\"></textarea></p>"
+					+ "<p><input type=submit value=\"post me!\"></input></p>"
+					+ "</form></body></html>");
+			response.type(MediaType.TEXT_HTML);
+			response.status((Status.OK.getStatusCode()));
+			return response.body();
+		});		
 	}
 }
