@@ -331,3 +331,11 @@ public class App { //implements SparkApplication {
 		});
 	}
 }
+
+/**
+ * 
+ * http://localhost:8080/blog/user/new?username=ushhausa&password=eden
+ * http://localhost:8080/blog/user/login?username=usausa&password=eden
+ * http://localhost:8080/blog/users/
+ * 
+ */
