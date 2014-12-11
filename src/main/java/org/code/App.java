@@ -180,5 +180,17 @@ public class App { //implements SparkApplication {
 			}
 			return response.body();
 		});
+
+		get("/blog/users/", (request, response) -> {
+			logger.info(String.format("request of user list into REDIS_BLOG: %s", request.body().toString()));
+
+			String users = jedis.smembers("users").stream().collect(Collectors.joining(", "));
+			
+			response.body(String.format("user list: [%s]: %s", jedis.smembers("users").size(), users));
+			response.type(MediaType.TEXT_PLAIN);
+			response.status(Status.OK.getStatusCode());
+
+			return response.body();
+		});
 	}
 }
