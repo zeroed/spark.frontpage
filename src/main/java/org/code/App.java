@@ -58,9 +58,13 @@ public class App { //implements SparkApplication {
 		return md5;
 	}
 
-//	@Override
-//	public void init() {
-		
+	public static String generateKey() {
+		return "";
+	}
+
+	//	@Override
+	//	public void init() {
+
 
 	public static void main(String[] args) {
 		JedisPool pool = new JedisPool(new JedisPoolConfig(), "localhost");
