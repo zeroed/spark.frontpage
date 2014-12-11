@@ -320,5 +320,14 @@ public class App { //implements SparkApplication {
 
 		});
 		
+
+		get("/blog/user/posts/", (request, response) -> {
+			logger.info(String.format("request of user list into REDIS_BLOG: %s", request.body().toString()));
+			// ...
+			response.type(MediaType.TEXT_PLAIN);
+			response.status(Status.OK.getStatusCode());
+
+			return response.body();
+		});
 	}
 }
