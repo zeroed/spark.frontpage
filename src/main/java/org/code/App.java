@@ -279,5 +279,33 @@ public class App { //implements SparkApplication {
 			response.status((Status.OK.getStatusCode()));
 			return response.body();
 		});		
+		
+		post("/blog/post/new", (request, response) -> {
+			logger.info(String.format("add a new post to REDIS: %s", request.queryParams("post")));
+
+				String subject = request.queryParams("subject");
+				String post = request.queryParams("post");
+				String login = request.session().attribute("login");
+				
+				String postKey = "blog:users:" + login + ":posts:" + jedis.incr("postsIndex").toString();
+				String userKey = "blog:users:" + login;
+				
+				logger.info(post);
+				logger.info(subject);
+				logger.info(login);
+				logger.info(postKey);
+				logger.info(userKey);
+				
+				jedis.hset(postKey, "author", userKey);
+				jedis.hset(postKey, "subject", subject);
+				jedis.hset(postKey, "content", post);
+				jedis.rpush(userKey, postKey);
+
+				response.body(String.format("Your post, Sir %s, is here <a href=/blog/post/%s>/blog/post/%s</a>", login, postKey, postKey));
+				response.type(MediaType.TEXT_HTML);
+				response.status(Status.CREATED.getStatusCode());
+
+			return response.body();
+		});
 	}
 }
