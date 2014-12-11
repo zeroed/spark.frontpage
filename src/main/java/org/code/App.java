@@ -34,11 +34,11 @@ import com.google.gson.JsonObject;
 
 
 public class App { //implements SparkApplication {
-	
+
 	static final Logger logger = LogManager.getLogger(App.class.getName());
-	static final int SECONDS_TO_LIVE = 600;
+	static final int SECONDS_TO_LIVE = 60000;
 	static final int KEY_LENGTH = 8;
-	
+
 	/**
 	 * TODO: before closing... release and destroy!
 	 * pool.returnResource(jedis);
