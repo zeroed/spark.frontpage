@@ -228,5 +228,40 @@ public class App { //implements SparkApplication {
 			}
 			return response.body();
 		});
+		
+		// e.g. /blog/user/login?username=adam&password=eden
+		get("/blog/user/login", (request, response) -> {
+			logger.info(String.format("request of login user into REDIS_BLOG: %s", request.body().toString()));
+			
+			String username = request.queryParams("username");
+			String password = request.queryParams("password");
+			
+				if(username != null && password != null) {
+					
+					String key = "blog:users:" + username;
+					logger.info(String.format("%s:%s", username, password));
+					
+					if(jedis.hget(key, "password") != null && jedis.hget(key, "password").equals(password)) {
+						
+						response.body(String.format("login! [%s]: %s", key, username));
+						request.session().attribute("login", username);
+						
+						response.type(MediaType.TEXT_PLAIN);
+						response.status(Status.OK.getStatusCode());
+					} else {
+						
+						response.body(String.format("Your password, Sir, is damn wrong! This %s is what you gave me?", password));
+						response.type(MediaType.TEXT_PLAIN);
+						response.status(Status.UNAUTHORIZED.getStatusCode());
+					}
+					
+				} else {
+					response.body(String.format("Your username, Sir, is damn wrong! This %s is what you gave me?", username));
+					response.type(MediaType.TEXT_PLAIN);
+					response.status(Status.NOT_ACCEPTABLE.getStatusCode());
+				}
+
+			return response.body();
+		});
 	}
 }
